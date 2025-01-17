@@ -156,7 +156,7 @@ export default function Home() {
     const avgJitter = filteredResults.reduce((sum, r) => sum + r.jitter, 0) / filteredResults.length;
     setJitter(avgJitter);
 
-    return avgPing;
+    return { ping: avgPing, jitter: avgJitter };
   };
 
   const measureDownloadSpeed = async (onProgress: (speed: number) => void) => {
@@ -331,8 +331,9 @@ export default function Home() {
     try {
       setCurrentPhase('ping');
       setProgress(10);
-      const pingResult = await measurePing();
+      const { ping: pingResult, jitter: jitterResult } = await measurePing();
       setPing(pingResult);
+      setJitter(jitterResult);
 
       setCurrentPhase('download');
       setProgress(30);
@@ -358,8 +359,8 @@ export default function Home() {
         isp,
         ip: ipAddress,
         server: dataCenter,
-        ping,
-        jitter,
+        ping: pingResult,
+        jitter: jitterResult,
         download: downloadResult,
         upload: uploadResult
       };
@@ -771,7 +772,7 @@ export default function Home() {
         <footer className="mt-8 pb-4 text-center text-sm text-gray-400">
           <div className="flex items-center justify-center gap-2">
             <a
-              href="https://github.com/yourusername/speedtest"
+              href="https://github.com/gorkembayraktar/speedtest"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition-colors duration-200 flex items-center gap-1"

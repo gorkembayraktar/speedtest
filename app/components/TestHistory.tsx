@@ -1,8 +1,7 @@
-import { Line } from 'react-chartjs-2';
-import { Download, Upload, Gauge, Activity, RotateCw } from "lucide-react";
-import { TestResults, TestHistory as TestHistoryType } from '../types';
-import { translations } from '../translations';
 import { useState } from 'react';
+import { Line } from 'react-chartjs-2';
+import { Download, Upload, Gauge, Activity, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { TestResults, TestHistory as TestHistoryType } from '../types';
 
 interface TestHistoryProps {
     testHistory: TestHistoryType;
@@ -30,14 +29,7 @@ const chartOptions = {
             }
         },
         title: {
-            display: true,
-            text: 'Speed Test History',
-            color: '#fff',
-            padding: 20,
-            font: {
-                size: 16,
-                weight: 'bold' as const
-            }
+            display: false
         }
     },
     scales: {
@@ -73,11 +65,17 @@ const chartOptions = {
 };
 
 export default function TestHistory({ testHistory, showHistory, setShowHistory, language }: TestHistoryProps) {
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     const totalPages = Math.ceil(testHistory.tests.length / itemsPerPage);
 
-    const t = translations[language];
+    const clearHistory = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('speedtest_history', JSON.stringify({ tests: [], lastUpdate: new Date().toISOString() }));
+            window.location.reload();
+        }
+    };
 
     const getCurrentPageItems = () => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -85,93 +83,19 @@ export default function TestHistory({ testHistory, showHistory, setShowHistory, 
         return testHistory.tests.slice(startIndex, endIndex);
     };
 
-    const PaginationControls = () => {
-        const pageNumbers = [];
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        if (date.toDateString() === today.toDateString()) {
+            return `${language === 'tr' ? 'Bugün' : 'Today'} ${date.toLocaleTimeString()}`;
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            return `${language === 'tr' ? 'Dün' : 'Yesterday'} ${date.toLocaleTimeString()}`;
+        } else {
+            return date.toLocaleString();
         }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pageNumbers.push(i);
-        }
-
-        return (
-            <div className="flex items-center justify-between mt-4 px-4">
-                <div className="text-sm text-gray-400">
-                    Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, testHistory.tests.length)} of {testHistory.tests.length} results
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                        className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                    >
-                        First
-                    </button>
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                    >
-                        Previous
-                    </button>
-                    <div className="flex items-center gap-1">
-                        {startPage > 1 && (
-                            <>
-                                <button
-                                    onClick={() => setCurrentPage(1)}
-                                    className="px-3 py-1 rounded text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                                >
-                                    1
-                                </button>
-                                {startPage > 2 && <span className="text-gray-600">...</span>}
-                            </>
-                        )}
-                        {pageNumbers.map(number => (
-                            <button
-                                key={number}
-                                onClick={() => setCurrentPage(number)}
-                                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${currentPage === number
-                                    ? 'bg-blue-500 text-white'
-                                    : 'text-gray-400 hover:text-white'
-                                    }`}
-                            >
-                                {number}
-                            </button>
-                        ))}
-                        {endPage < totalPages && (
-                            <>
-                                {endPage < totalPages - 1 && <span className="text-gray-600">...</span>}
-                                <button
-                                    onClick={() => setCurrentPage(totalPages)}
-                                    className="px-3 py-1 rounded text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                                >
-                                    {totalPages}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                    >
-                        Next
-                    </button>
-                    <button
-                        onClick={() => setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                    >
-                        Last
-                    </button>
-                </div>
-            </div>
-        );
     };
 
     const getChartData = () => {
@@ -181,31 +105,12 @@ export default function TestHistory({ testHistory, showHistory, setShowHistory, 
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
 
-            // Bugün ise
             if (date.toDateString() === today.toDateString()) {
-                return `Today ${date.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                })}`;
-            }
-            // Dün ise
-            else if (date.toDateString() === yesterday.toDateString()) {
-                return `Yesterday ${date.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                })}`;
-            }
-            // Diğer günler için
-            else {
-                return date.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
+                return `${language === 'tr' ? 'Bugün' : 'Today'} ${date.toLocaleTimeString()}`;
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return `${language === 'tr' ? 'Dün' : 'Yesterday'} ${date.toLocaleTimeString()}`;
+            } else {
+                return date.toLocaleString();
             }
         }).reverse();
 
@@ -230,159 +135,176 @@ export default function TestHistory({ testHistory, showHistory, setShowHistory, 
         };
     };
 
-    if (testHistory.tests.length === 0) {
-        return null;
-    }
-
     return (
-        <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">{t.testHistory}</h2>
-                <button
-                    onClick={() => setShowHistory(!showHistory)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-sm font-medium transition-colors duration-200"
-                >
-                    <RotateCw className="w-4 h-4" />
-                    {showHistory ? t.hideHistory : t.showHistory}
-                </button>
+        <>
+            <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                    <button
+                        onClick={() => setShowHistory(!showHistory)}
+                        className="flex items-center gap-2 text-lg font-medium text-gray-300 hover:text-white transition-colors"
+                    >
+                        {showHistory ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        {language === 'tr' ? 'Test Geçmişi' : 'Test History'}
+                    </button>
+                    {showHistory && testHistory.tests.length > 0 && (
+                        <button
+                            onClick={() => setShowConfirmModal(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {language === 'tr' ? 'Geçmişi Temizle' : 'Clear History'}
+                        </button>
+                    )}
+                </div>
+
+                {showHistory && (
+                    <div className="bg-gray-900/50 backdrop-blur-xl shadow-2xl border border-gray-800/50 rounded-2xl p-4 overflow-x-auto">
+                        {testHistory.tests.length > 0 ? (
+                            <>
+                                <div className="w-full h-[400px] mb-8">
+                                    <Line options={chartOptions} data={getChartData()} />
+                                </div>
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="text-left text-sm text-gray-400">
+                                            <th className="py-2 px-4 font-medium">{language === 'tr' ? 'Tarih & Saat' : 'Date & Time'}</th>
+                                            <th className="py-2 px-4 font-medium">Download</th>
+                                            <th className="py-2 px-4 font-medium">Upload</th>
+                                            <th className="py-2 px-4 font-medium">Ping</th>
+                                            <th className="py-2 px-4 font-medium">Jitter</th>
+                                            <th className="py-2 px-4 font-medium">Server</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {getCurrentPageItems().map((test: TestResults, index: number) => (
+                                            <tr key={index} className="border-t border-gray-800/50 text-sm hover:bg-gray-800/30">
+                                                <td className="py-3 px-4">
+                                                    <div className="font-medium text-gray-300">{formatDate(test.date)}</div>
+                                                    <div className="text-xs text-gray-500">{test.isp}</div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Download className="w-4 h-4 text-blue-400" />
+                                                        <span className="font-medium text-blue-400">
+                                                            {test.download.toFixed(2)}
+                                                            <span className="text-xs text-gray-400 ml-1">Mbps</span>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Upload className="w-4 h-4 text-green-400" />
+                                                        <span className="font-medium text-green-400">
+                                                            {test.upload.toFixed(2)}
+                                                            <span className="text-xs text-gray-400 ml-1">Mbps</span>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Gauge className="w-4 h-4 text-gray-400" />
+                                                        <span className="font-medium text-gray-200">
+                                                            {test.ping.toFixed(1)}
+                                                            <span className="text-xs text-gray-400 ml-1">ms</span>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Activity className="w-4 h-4 text-gray-400" />
+                                                        <span className="font-medium text-gray-200">
+                                                            {test.jitter.toFixed(1)}
+                                                            <span className="text-xs text-gray-400 ml-1">ms</span>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4 text-gray-400">{test.server}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {/* Pagination */}
+                                <div className="flex items-center justify-between mt-4 px-4">
+                                    <div className="text-sm text-gray-400">
+                                        {language === 'tr'
+                                            ? `${((currentPage - 1) * itemsPerPage) + 1} - ${Math.min(currentPage * itemsPerPage, testHistory.tests.length)} arası gösteriliyor (Toplam: ${testHistory.tests.length})`
+                                            : `Showing ${((currentPage - 1) * itemsPerPage) + 1} to ${Math.min(currentPage * itemsPerPage, testHistory.tests.length)} of ${testHistory.tests.length} results`
+                                        }
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setCurrentPage(1)}
+                                            disabled={currentPage === 1}
+                                            className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            {language === 'tr' ? 'İlk' : 'First'}
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            {language === 'tr' ? 'Önceki' : 'Previous'}
+                                        </button>
+                                        <span className="text-gray-400">
+                                            {currentPage} / {totalPages}
+                                        </span>
+                                        <button
+                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            {language === 'tr' ? 'Sonraki' : 'Next'}
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentPage(totalPages)}
+                                            disabled={currentPage === totalPages}
+                                            className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            {language === 'tr' ? 'Son' : 'Last'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="text-center py-8 text-gray-400">
+                                {language === 'tr' ? 'Henüz test geçmişi bulunmuyor.' : 'No test history available.'}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {showHistory && (
-                <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl p-4 sm:p-8 shadow-2xl border border-gray-800/50">
-                    <div className="w-full h-[400px] mb-8">
-                        <Line options={chartOptions} data={getChartData()} />
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-separate border-spacing-0">
-                            <thead>
-                                <tr>
-                                    <th className="sticky top-0 bg-gray-800/50 backdrop-blur-xl px-4 py-3 text-sm font-medium text-gray-400 rounded-tl-lg">{t.dateTime}</th>
-                                    <th className="sticky top-0 bg-gray-800/50 backdrop-blur-xl px-4 py-3 text-sm font-medium text-gray-400">{t.download}</th>
-                                    <th className="sticky top-0 bg-gray-800/50 backdrop-blur-xl px-4 py-3 text-sm font-medium text-gray-400">{t.upload}</th>
-                                    <th className="sticky top-0 bg-gray-800/50 backdrop-blur-xl px-4 py-3 text-sm font-medium text-gray-400">{t.ping}</th>
-                                    <th className="sticky top-0 bg-gray-800/50 backdrop-blur-xl px-4 py-3 text-sm font-medium text-gray-400">{t.jitter}</th>
-                                    <th className="sticky top-0 bg-gray-800/50 backdrop-blur-xl px-4 py-3 text-sm font-medium text-gray-400 rounded-tr-lg">{t.server}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {getCurrentPageItems().map((test: TestResults, index: number) => {
-                                    const date = new Date(test.date);
-                                    const today = new Date();
-                                    const yesterday = new Date(today);
-                                    yesterday.setDate(yesterday.getDate() - 1);
-
-                                    let dateDisplay;
-                                    if (date.toDateString() === today.toDateString()) {
-                                        dateDisplay = `${t.today} ${date.toLocaleTimeString('en-US', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: false
-                                        })}`;
-                                    } else if (date.toDateString() === yesterday.toDateString()) {
-                                        dateDisplay = `${t.yesterday} ${date.toLocaleTimeString('en-US', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: false
-                                        })}`;
-                                    } else {
-                                        dateDisplay = date.toLocaleString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: false
-                                        });
-                                    }
-
-                                    return (
-                                        <tr
-                                            key={test.date}
-                                            className="group hover:bg-gray-800/30 transition-colors duration-150"
-                                        >
-                                            <td className="px-4 py-3 text-sm">
-                                                <div className="font-medium text-gray-300">{dateDisplay}</div>
-                                                <div className="text-xs text-gray-500">{test.isp}</div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Download className="w-4 h-4 text-blue-400" />
-                                                    <span className="font-medium text-blue-400">
-                                                        {test.download.toFixed(2)}
-                                                        <span className="text-xs text-gray-400 ml-1">Mbps</span>
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Upload className="w-4 h-4 text-green-400" />
-                                                    <span className="font-medium text-green-400">
-                                                        {test.upload.toFixed(2)}
-                                                        <span className="text-xs text-gray-400 ml-1">Mbps</span>
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Gauge className="w-4 h-4 text-gray-400" />
-                                                    <span className="font-medium text-gray-200">
-                                                        {test.ping.toFixed(1)}
-                                                        <span className="text-xs text-gray-400 ml-1">ms</span>
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Activity className="w-4 h-4 text-gray-400" />
-                                                    <span className="font-medium text-gray-200">
-                                                        {test.jitter.toFixed(1)}
-                                                        <span className="text-xs text-gray-400 ml-1">ms</span>
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-400">{test.server}</td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                        <div className="flex items-center justify-between mt-4 px-4">
-                            <div className="text-sm text-gray-400">
-                                {t.showing} {((currentPage - 1) * itemsPerPage) + 1} {t.to} {Math.min(currentPage * itemsPerPage, testHistory.tests.length)} {t.of} {testHistory.tests.length} {t.results}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(1)}
-                                    disabled={currentPage === 1}
-                                    className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                                >
-                                    {t.first}
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                                >
-                                    {t.previous}
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                                >
-                                    {t.next}
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(totalPages)}
-                                    disabled={currentPage === totalPages}
-                                    className="px-2 py-1 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors"
-                                >
-                                    {t.last}
-                                </button>
-                            </div>
+            {/* Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+                        <h3 className="text-xl font-semibold mb-2">
+                            {language === 'tr' ? 'Geçmişi Temizle' : 'Clear History'}
+                        </h3>
+                        <p className="text-gray-400 mb-6">
+                            {language === 'tr'
+                                ? 'Tüm test geçmişiniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?'
+                                : 'All your test history will be deleted. This action cannot be undone. Do you want to continue?'}
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowConfirmModal(false)}
+                                className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                            >
+                                {language === 'tr' ? 'İptal' : 'Cancel'}
+                            </button>
+                            <button
+                                onClick={clearHistory}
+                                className="px-4 py-2 text-sm font-medium bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                            >
+                                {language === 'tr' ? 'Evet, Temizle' : 'Yes, Clear'}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 } 
