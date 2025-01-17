@@ -243,8 +243,14 @@ export default function Home() {
       const initialResult = await initialResponse.json();
       console.log('Initial test result:', initialResult);
       const initialSpeedMbps = initialResult.speed;
+
+      // İlk test sonucunu kaydet
       measurements.push(initialSpeedMbps);
       onProgress(initialSpeedMbps);
+      setSpeedHistory(prev => ({
+        ...prev,
+        upload: [...prev.upload, initialSpeedMbps]
+      }));
 
       // Hıza göre uygun dosya boyutunu seç
       let testFileSize: string;
@@ -279,26 +285,35 @@ export default function Home() {
         console.log(`Test ${i + 1} result:`, result);
         const speedInMbps = result.speed;
 
-        // Gerçekçi olmayan sonuçları filtrele (1 Gbps üstü)
-        if (speedInMbps < 1000) {
-          measurements.push(speedInMbps);
-          setSpeedHistory(prev => ({
-            ...prev,
-            upload: [...prev.upload, speedInMbps]
-          }));
-          onProgress(speedInMbps);
-        }
+        // Her test sonucunu kaydet
+        measurements.push(speedInMbps);
+        onProgress(speedInMbps);
+        setSpeedHistory(prev => ({
+          ...prev,
+          upload: [...prev.upload, speedInMbps]
+        }));
 
         // Testler arası bekleme
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (i < 2) { // Son testte beklemeye gerek yok
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
 
-      // Son 3 ölçümün medyanını al
-      const sortedMeasurements = [...measurements].sort((a, b) => a - b);
-      const medianIndex = Math.floor(sortedMeasurements.length / 2);
-      console.log('Final measurements:', measurements);
-      console.log('Median speed:', sortedMeasurements[medianIndex]);
-      return sortedMeasurements[medianIndex];
+      // Tüm ölçümlerin medyanını hesapla
+      console.log('Raw measurements:', measurements);
+
+      // Son 3 ölçümü al (büyük dosya testleri)
+      const lastThreeMeasurements = measurements.slice(-3);
+      console.log('Last three measurements:', lastThreeMeasurements);
+
+      // Medyanı hesapla
+      const sortedMeasurements = [...lastThreeMeasurements].sort((a, b) => a - b);
+      const medianSpeed = sortedMeasurements[Math.floor(sortedMeasurements.length / 2)];
+
+      console.log('Sorted measurements:', sortedMeasurements);
+      console.log('Median speed:', medianSpeed);
+
+      return medianSpeed;
     } catch (error) {
       console.error('Upload test error:', error);
       throw error;
