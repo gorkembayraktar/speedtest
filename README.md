@@ -26,7 +26,7 @@ A modern and user-friendly internet speed test application built with Next.js. T
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/speedtest.git
+git clone https://github.com/gorkembayraktar/speedtest.git
 ```
 
 2. Install dependencies:
@@ -40,6 +40,18 @@ npm run dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Live Demo
+
+Visit [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) to see the application in action.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -71,7 +83,7 @@ Next.js ile geliştirilmiş modern ve kullanıcı dostu bir internet hız testi 
 
 1. Repository'yi klonlayın:
 ```bash
-git clone https://github.com/yourusername/speedtest.git
+git clone https://github.com/gorkembayraktar/speedtest.git
 ```
 
 2. Bağımlılıkları yükleyin:
@@ -84,4 +96,16 @@ npm install
 npm run dev
 ```
 
-4. Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açın. 
+4. Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açın.
+
+## Canlı Demo
+
+Uygulamayı görmek için [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) adresini ziyaret edin.
+
+## Katkıda Bulunma
+
+Katkılarınızı bekliyoruz! Pull Request göndermekten çekinmeyin.
+
+## Lisans
+
+Bu proje MIT Lisansı ile lisanslanmıştır - detaylar için [LICENSE](LICENSE) dosyasına bakın. 
