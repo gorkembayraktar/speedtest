@@ -2,6 +2,16 @@
 
 A modern and user-friendly internet speed test application built with Next.js. Test your internet connection speed including download, upload, ping, and jitter measurements.
 
+## Screenshots
+
+<div align="center">
+  <img src="doc/img1.png" alt="Speed Test Screenshot 1" width="800"/>
+  <br/><br/>
+  <img src="doc/img2.png" alt="Speed Test Screenshot 2" width="800"/>
+  <br/><br/>
+  <img src="doc/img3.png" alt="Speed Test Screenshot 3" width="800"/>
+</div>
+
 ## Features
 
 - 🚀 Real-time speed measurements
@@ -65,6 +75,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 # Hız Testi Uygulaması
 
 Next.js ile geliştirilmiş modern ve kullanıcı dostu bir internet hız testi uygulaması. İndirme, yükleme, ping ve jitter ölçümlerini test edin.
+
+## Ekran Görüntüleri
+
+<div align="center">
+  <img src="doc/img1.png" alt="Hız Testi Ekran Görüntüsü 1" width="800"/>
+  <br/><br/>
+  <img src="doc/img2.png" alt="Hız Testi Ekran Görüntüsü 2" width="800"/>
+  <br/><br/>
+  <img src="doc/img3.png" alt="Hız Testi Ekran Görüntüsü 3" width="800"/>
+</div>
 
 ## Özellikler
 
