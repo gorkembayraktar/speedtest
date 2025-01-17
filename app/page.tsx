@@ -19,6 +19,8 @@ import { TestResults, TestHistory as TestHistoryType } from './types';
 import TestHistory from './components/TestHistory';
 import LanguageSelector from './components/LanguageSelector';
 import { translations } from './translations';
+import ThemeSelector from './components/ThemeSelector';
+import { useTheme } from './contexts/ThemeContext';
 
 // Register ChartJS components
 ChartJS.register(
@@ -51,9 +53,16 @@ export default function Home() {
   const [testResults, setTestResults] = useState<TestResults | null>(null);
   const [exportType, setExportType] = useState<'json' | 'png'>('json');
   const [testHistory, setTestHistory] = useState<TestHistoryType>({ tests: [], lastUpdate: '' });
-  const [showHistory, setShowHistory] = useState(true);
+  const [showHistory, setShowHistory] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('speedtest_show_history');
+      return saved ? JSON.parse(saved) : true;
+    }
+    return true;
+  });
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<'en' | 'tr'>('en');
+  const { theme, setTheme, colors } = useTheme();
 
   // Initialize language after mount
   useEffect(() => {
@@ -79,6 +88,13 @@ export default function Home() {
   }, [language, mounted]);
 
   const t = translations[language];
+
+  // Save showHistory preference to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('speedtest_show_history', JSON.stringify(showHistory));
+    }
+  }, [showHistory]);
 
   // Add useEffect for localStorage initialization
   useEffect(() => {
@@ -544,22 +560,26 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-purple-900 text-white p-4">
+    <main className={`min-h-screen ${colors.background} ${colors.text} p-4 sm:p-8`}>
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
-              {t.title}
-            </h1>
-            <p className="text-gray-400 mt-1">{t.subtitle}</p>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
+            {language === 'tr' ? 'Hız Testi' : 'Speed Test'}
+          </h1>
+          <div className="flex items-center gap-4">
+            <ThemeSelector
+              onThemeChange={setTheme}
+              initialTheme={theme}
+              language={language}
+            />
+            <LanguageSelector
+              onLanguageChange={setLanguage}
+              initialLanguage={language}
+            />
           </div>
-          <LanguageSelector onLanguageChange={setLanguage} initialLanguage={language} />
         </div>
 
-        <div className={`
-          rounded-2xl sm:rounded-3xl p-4 sm:p-8
-          ${!testing && testResults ? 'bg-gray-900/50 backdrop-blur-xl shadow-2xl border border-gray-800/50' : ''}
-        `}>
+        <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-8 ${!testing && testResults ? `${colors.background} backdrop-blur-xl shadow-2xl ${colors.border}` : ''}`}>
           <div className="flex flex-col lg:flex-row items-center">
             {/* Left Section - Speedometer and Button */}
             <div className={`flex flex-col items-center justify-between ${!testing && testResults ? 'lg:w-1/2' : 'w-full'}`}>

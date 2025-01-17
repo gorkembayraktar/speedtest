@@ -1,6 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,12 +26,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.ico" />
-        <link rel="shortcut icon" href="/icon.ico" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={cn(
+        "min-h-screen",
+        "selection:bg-blue-500/20 selection:text-blue-200"
+      )}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

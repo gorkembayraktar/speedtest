@@ -158,75 +158,79 @@ export default function TestHistory({ testHistory, showHistory, setShowHistory, 
                 </div>
 
                 {showHistory && (
-                    <div className="bg-gray-900/50 backdrop-blur-xl shadow-2xl border border-gray-800/50 rounded-2xl p-4 overflow-x-auto">
+                    <div className="bg-gray-900/50 backdrop-blur-xl shadow-2xl border border-gray-800/50 rounded-2xl p-4">
                         {testHistory.tests.length > 0 ? (
                             <>
                                 <div className="w-full h-[400px] mb-8">
                                     <Line options={chartOptions} data={getChartData()} />
                                 </div>
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="text-left text-sm text-gray-400">
-                                            <th className="py-2 px-4 font-medium">{language === 'tr' ? 'Tarih & Saat' : 'Date & Time'}</th>
-                                            <th className="py-2 px-4 font-medium">Download</th>
-                                            <th className="py-2 px-4 font-medium">Upload</th>
-                                            <th className="py-2 px-4 font-medium">Ping</th>
-                                            <th className="py-2 px-4 font-medium">Jitter</th>
-                                            <th className="py-2 px-4 font-medium">Server</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {getCurrentPageItems().map((test: TestResults, index: number) => (
-                                            <tr key={index} className="border-t border-gray-800/50 text-sm hover:bg-gray-800/30">
-                                                <td className="py-3 px-4">
-                                                    <div className="font-medium text-gray-300">{formatDate(test.date)}</div>
-                                                    <div className="text-xs text-gray-500">{test.isp}</div>
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Download className="w-4 h-4 text-blue-400" />
-                                                        <span className="font-medium text-blue-400">
-                                                            {test.download.toFixed(2)}
-                                                            <span className="text-xs text-gray-400 ml-1">Mbps</span>
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Upload className="w-4 h-4 text-green-400" />
-                                                        <span className="font-medium text-green-400">
-                                                            {test.upload.toFixed(2)}
-                                                            <span className="text-xs text-gray-400 ml-1">Mbps</span>
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Gauge className="w-4 h-4 text-gray-400" />
-                                                        <span className="font-medium text-gray-200">
-                                                            {test.ping.toFixed(1)}
-                                                            <span className="text-xs text-gray-400 ml-1">ms</span>
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Activity className="w-4 h-4 text-gray-400" />
-                                                        <span className="font-medium text-gray-200">
-                                                            {test.jitter.toFixed(1)}
-                                                            <span className="text-xs text-gray-400 ml-1">ms</span>
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-400">{test.server}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                <div className="overflow-x-auto scrollbar-thin scrollbar-track-gray-800/50 scrollbar-thumb-gray-600/50 hover:scrollbar-thumb-gray-500/50 -mx-4 sm:mx-0 rounded-lg">
+                                    <div className="min-w-[800px] p-0.5">
+                                        <table className="w-full">
+                                            <thead className="sticky top-0 bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/75">
+                                                <tr className="text-left text-sm text-gray-400">
+                                                    <th className="py-2 px-4 font-medium whitespace-nowrap first:rounded-l-lg last:rounded-r-lg">{language === 'tr' ? 'Tarih & Saat' : 'Date & Time'}</th>
+                                                    <th className="py-2 px-4 font-medium whitespace-nowrap first:rounded-l-lg last:rounded-r-lg">Download</th>
+                                                    <th className="py-2 px-4 font-medium whitespace-nowrap first:rounded-l-lg last:rounded-r-lg">Upload</th>
+                                                    <th className="py-2 px-4 font-medium whitespace-nowrap first:rounded-l-lg last:rounded-r-lg">Ping</th>
+                                                    <th className="py-2 px-4 font-medium whitespace-nowrap first:rounded-l-lg last:rounded-r-lg">Jitter</th>
+                                                    <th className="py-2 px-4 font-medium whitespace-nowrap first:rounded-l-lg last:rounded-r-lg">Server</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="relative">
+                                                {getCurrentPageItems().map((test: TestResults, index: number) => (
+                                                    <tr key={index} className="border-t border-gray-800/50 text-sm hover:bg-gray-800/30 transition-colors duration-150">
+                                                        <td className="py-3 px-4 whitespace-nowrap">
+                                                            <div className="font-medium text-gray-300">{formatDate(test.date)}</div>
+                                                            <div className="text-xs text-gray-500">{test.isp}</div>
+                                                        </td>
+                                                        <td className="py-3 px-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <Download className="w-4 h-4 text-blue-400" />
+                                                                <span className="font-medium text-blue-400">
+                                                                    {test.download.toFixed(2)}
+                                                                    <span className="text-xs text-gray-400 ml-1">Mbps</span>
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <Upload className="w-4 h-4 text-green-400" />
+                                                                <span className="font-medium text-green-400">
+                                                                    {test.upload.toFixed(2)}
+                                                                    <span className="text-xs text-gray-400 ml-1">Mbps</span>
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <Gauge className="w-4 h-4 text-gray-400" />
+                                                                <span className="font-medium text-gray-200">
+                                                                    {test.ping.toFixed(1)}
+                                                                    <span className="text-xs text-gray-400 ml-1">ms</span>
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <Activity className="w-4 h-4 text-gray-400" />
+                                                                <span className="font-medium text-gray-200">
+                                                                    {test.jitter.toFixed(1)}
+                                                                    <span className="text-xs text-gray-400 ml-1">ms</span>
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4 text-gray-400 whitespace-nowrap">{test.server}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
 
-                                {/* Pagination */}
-                                <div className="flex items-center justify-between mt-4 px-4">
-                                    <div className="text-sm text-gray-400">
+                                {/* Pagination - Make it responsive */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between mt-4 px-4 gap-4">
+                                    <div className="text-sm text-gray-400 text-center sm:text-left">
                                         {language === 'tr'
                                             ? `${((currentPage - 1) * itemsPerPage) + 1} - ${Math.min(currentPage * itemsPerPage, testHistory.tests.length)} arası gösteriliyor (Toplam: ${testHistory.tests.length})`
                                             : `Showing ${((currentPage - 1) * itemsPerPage) + 1} to ${Math.min(currentPage * itemsPerPage, testHistory.tests.length)} of ${testHistory.tests.length} results`
