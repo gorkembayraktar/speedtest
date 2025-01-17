@@ -45,23 +45,37 @@ const themeColors = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<Theme>('default');
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const savedTheme = localStorage.getItem('preferred_theme') as Theme;
-            if (savedTheme && Object.keys(themeColors).includes(savedTheme)) {
-                setTheme(savedTheme);
-            }
+// Get initial theme from localStorage or default
+const getInitialTheme = (): Theme => {
+    if (typeof window !== 'undefined') {
+        const savedTheme = localStorage.getItem('preferred_theme') as Theme;
+        if (savedTheme && Object.keys(themeColors).includes(savedTheme)) {
+            return savedTheme;
         }
+    }
+    return 'default';
+};
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+    const [theme, setTheme] = useState<Theme>(getInitialTheme);
+
+    // Component mount kontrolü
+    useEffect(() => {
+        setMounted(true);
     }, []);
 
+    // Theme değişikliklerini localStorage'a kaydet
     useEffect(() => {
-        if (typeof window !== 'undefined') {
+        if (mounted && typeof window !== 'undefined') {
             localStorage.setItem('preferred_theme', theme);
         }
-    }, [theme]);
+    }, [theme, mounted]);
+
+    // SSR için güvenli render
+    if (!mounted) {
+        return <>{children}</>;
+    }
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, colors: themeColors[theme] }}>

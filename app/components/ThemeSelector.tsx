@@ -12,6 +12,7 @@ interface ThemeSelectorProps {
 export default function ThemeSelector({ onThemeChange, initialTheme, language }: ThemeSelectorProps) {
     const [currentTheme, setCurrentTheme] = useState<Theme>(initialTheme);
     const [isOpen, setIsOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const themes = [
         {
@@ -40,13 +41,31 @@ export default function ThemeSelector({ onThemeChange, initialTheme, language }:
         }
     ];
 
+    // Component mount kontrolü
     useEffect(() => {
-        setCurrentTheme(initialTheme);
-    }, [initialTheme]);
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    // Theme initialization and sync
+    useEffect(() => {
+        if (!mounted) return;
+
+        const savedTheme = localStorage.getItem('preferred_theme') as Theme;
+        if (savedTheme && themes.some(t => t.value === savedTheme)) {
+            setCurrentTheme(savedTheme);
+            onThemeChange(savedTheme);
+        } else {
+            setCurrentTheme(initialTheme);
+            localStorage.setItem('preferred_theme', initialTheme);
+        }
+    }, [mounted, initialTheme, onThemeChange]);
 
     const handleThemeChange = (theme: Theme) => {
+        if (!mounted) return;
         setCurrentTheme(theme);
         onThemeChange(theme);
+        localStorage.setItem('preferred_theme', theme);
         setIsOpen(false);
     };
 

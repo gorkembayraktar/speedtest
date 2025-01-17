@@ -10,6 +10,7 @@ A modern and user-friendly internet speed test application built with Next.js. T
 - 📍 Server location detection
 - 📱 Responsive design
 - 🌍 Multi-language support (English/Turkish)
+- 🎨 Theme options (Aurora/Dark/Dim)
 - 📜 Test history with up to 100 records
 - 💾 Export results as JSON or PNG
 - 🎯 Accurate ping and jitter measurements
@@ -41,6 +42,16 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Theme Options
+
+The application offers three beautiful themes:
+
+- **Aurora**: Default theme with a modern gradient look
+- **Dark**: Classic dark theme for low-light environments
+- **Dim**: Balanced dark theme with softer contrasts
+
+Theme preferences are automatically saved in your browser and will persist between sessions.
+
 ## Live Demo
 
 Visit [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) to see the application in action.
@@ -63,6 +74,7 @@ Next.js ile geliştirilmiş modern ve kullanıcı dostu bir internet hız testi 
 - 📍 Sunucu konumu tespiti
 - 📱 Responsive tasarım
 - 🌍 Çoklu dil desteği (İngilizce/Türkçe)
+- 🎨 Tema seçenekleri (Aurora/Koyu/Loş)
 - 📜 100 kayıta kadar test geçmişi
 - 💾 JSON veya PNG olarak sonuç dışa aktarma
 - 🎯 Hassas ping ve jitter ölçümleri
@@ -93,6 +105,16 @@ npm run dev
 ```
 
 4. Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açın.
+
+## Tema Seçenekleri
+
+Uygulama üç güzel tema seçeneği sunar:
+
+- **Aurora**: Modern gradyan görünümlü varsayılan tema
+- **Koyu**: Düşük ışıklı ortamlar için klasik koyu tema
+- **Loş**: Yumuşak kontrastlı dengeli koyu tema
+
+Tema tercihleri tarayıcınızda otomatik olarak kaydedilir ve oturumlar arasında korunur.
 
 ## Canlı Demo
 

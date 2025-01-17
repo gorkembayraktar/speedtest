@@ -62,10 +62,32 @@ export default function Home() {
   });
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<'en' | 'tr'>('en');
-  const { theme, setTheme, colors } = useTheme();
+
+  // Initialize after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Theme context'i sadece client-side'da kullan
+  const themeContext = mounted ? useTheme() : {
+    theme: 'default' as const,
+    setTheme: () => { },
+    colors: {
+      background: '',
+      text: '',
+      primary: '',
+      secondary: '',
+      accent: '',
+      border: ''
+    }
+  };
+
+  const { theme, setTheme, colors } = themeContext;
 
   // Initialize language after mount
   useEffect(() => {
+    if (!mounted) return;
+
     // Check localStorage
     const savedLang = localStorage.getItem('preferred_language');
     if (savedLang === 'en' || savedLang === 'tr') {
@@ -77,8 +99,7 @@ export default function Home() {
         setLanguage('tr');
       }
     }
-    setMounted(true);
-  }, []);
+  }, [mounted]);
 
   // Save language preference
   useEffect(() => {
@@ -91,26 +112,21 @@ export default function Home() {
 
   // Save showHistory preference to localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted) {
       localStorage.setItem('speedtest_show_history', JSON.stringify(showHistory));
     }
-  }, [showHistory]);
+  }, [showHistory, mounted]);
 
   // Add useEffect for localStorage initialization
   useEffect(() => {
-    // Check if localStorage has a saved preference
-    const saved = localStorage.getItem('speedtest_history_visible');
-    if (saved !== null) {
-      setShowHistory(JSON.parse(saved));
+    if (mounted) {
+      // Check if localStorage has a saved preference
+      const saved = localStorage.getItem('speedtest_history_visible');
+      if (saved !== null) {
+        setShowHistory(JSON.parse(saved));
+      }
     }
-  }, []);
-
-  // Keep the existing useEffect for saving preference
-  useEffect(() => {
-    if (typeof window !== 'undefined') { // Check if we're in the browser
-      localStorage.setItem('speedtest_history_visible', JSON.stringify(showHistory));
-    }
-  }, [showHistory]);
+  }, [mounted]);
 
   // Fetch ISP info on component mount
   useEffect(() => {

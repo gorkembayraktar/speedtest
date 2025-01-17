@@ -1,8 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { cn } from '@/lib/utils';
+import ClientLayout from './ClientLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -34,9 +34,9 @@ export default function RootLayout({
         "min-h-screen",
         "selection:bg-blue-500/20 selection:text-blue-200"
       )}>
-        <ThemeProvider>
+        <ClientLayout>
           {children}
-        </ThemeProvider>
+        </ClientLayout>
       </body>
     </html>
   );
