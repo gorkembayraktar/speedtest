@@ -288,14 +288,14 @@ export default function Home() {
         upload: [...prev.upload, initialSpeedMbps]
       }));
 
-      // Hıza göre uygun dosya boyutunu seç
+      // Hıza göre uygun dosya boyutunu seç (Vercel limiti nedeniyle maksimum 4MB)
       let testFileSize: string;
-      if (initialSpeedMbps < 5) {
-        testFileSize = '5';  // Yavaş bağlantı: 5MB
-      } else if (initialSpeedMbps < 20) {
-        testFileSize = '10'; // Orta hız: 10MB
+      if (initialSpeedMbps < 2) {
+        testFileSize = '1';  // Yavaş bağlantı: 1MB
+      } else if (initialSpeedMbps < 5) {
+        testFileSize = '2'; // Orta hız: 2MB
       } else {
-        testFileSize = '25'; // Yüksek hız: 25MB
+        testFileSize = '4'; // Yüksek hız: 4MB
       }
 
       console.log(`Selected test file size: ${testFileSize}MB`);
