@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Vercel Edge Runtime yapılandırması
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 // Maksimum dosya boyutu kontrolü (50MB)
@@ -19,50 +17,51 @@ export async function POST(request: NextRequest) {
             }, { status: 413 });
         }
 
-        const start = performance.now();
-
-        // TCP connection ve initial handshake simülasyonu (100-200ms)
-        await artificialDelay(100 + Math.random() * 100);
-
+        // Dosya boyutuna göre simüle edilmiş hız hesaplama
         const data = await request.arrayBuffer();
         const fileSizeInBytes = data.byteLength;
+        const fileSizeMB = fileSizeInBytes / (1024 * 1024);
 
-        // Dosya boyutuna göre minimum süre hesaplama (1MB = en az 1 saniye)
-        const minTimeInSeconds = (fileSizeInBytes / (1024 * 1024));
+        // Dosya boyutuna göre baz hız belirleme
+        // - 1MB için ~2Mbps
+        // - 5MB için ~8Mbps
+        // - 10MB için ~12Mbps
+        // - 25MB için ~15Mbps
+        let baseMbps;
+        if (fileSizeMB <= 1) {
+            baseMbps = 2;
+        } else if (fileSizeMB <= 5) {
+            baseMbps = 8;
+        } else if (fileSizeMB <= 10) {
+            baseMbps = 12;
+        } else {
+            baseMbps = 15;
+        }
 
-        // Network koşullarına göre ek gecikme (dosya boyutunun %20-40'ı kadar)
-        const additionalDelay = minTimeInSeconds * (0.2 + Math.random() * 0.2) * 1000;
-        await artificialDelay(additionalDelay);
+        // Gerçekçi network koşulları simülasyonu (±20% varyasyon)
+        const variance = baseMbps * 0.2;
+        const finalSpeed = Math.max(
+            Math.min(
+                baseMbps + (Math.random() * variance * 2 - variance),
+                20 // maksimum 20Mbps
+            ),
+            1 // minimum 1Mbps
+        );
 
-        const end = performance.now();
-        const durationInSeconds = (end - start) / 1000;
+        // Network overhead simülasyonu (10-30% daha yavaş)
+        const adjustedSpeed = finalSpeed * (0.7 + Math.random() * 0.2);
 
-        // Gerçekçi bir upload hızı hesaplaması
-        // 1. Network overhead ve protokol yükü (40%)
-        const adjustedDuration = durationInSeconds * 1.4;
-
-        // 2. TCP/IP ve diğer protokol overhead'leri için dosya boyutunu ayarla
-        const adjustedSize = fileSizeInBytes * 1.1; // 10% ek protokol verisi
-
-        // 3. Hız hesaplaması (bits per second)
-        const bitsPerSecond = (adjustedSize * 8) / adjustedDuration;
-
-        // 4. Mbps'ye çevirme ve daha gerçekçi hız sınırlaması (maksimum 20 Mbps)
-        const megabitsPerSecond = Math.min((bitsPerSecond / 1_000_000), 20);
-
-        // 5. Gerçekçi network koşulları simülasyonu
-        // - Base speed: maksimum hızın %60-80'i arasında
-        const baseSpeed = megabitsPerSecond * (0.6 + Math.random() * 0.2);
-
-        // - Network jitter ve latency simülasyonu (±15%)
-        const variance = baseSpeed * 0.15;
-        const finalSpeed = baseSpeed + (Math.random() * variance * 2 - variance);
+        // Simüle edilmiş süre (saniye)
+        // Küçük dosyalar için minimum süre daha az, büyük dosyalar için daha fazla
+        const minDuration = Math.max(fileSizeMB * 0.5, 1); // Her MB için en az 0.5 saniye
+        const calculatedDuration = (fileSizeInBytes * 8) / (adjustedSpeed * 1_000_000);
+        const simulatedDuration = Math.max(calculatedDuration, minDuration);
 
         return NextResponse.json({
             success: true,
-            speed: finalSpeed,
+            speed: adjustedSpeed,
             size: fileSizeInBytes,
-            duration: adjustedDuration
+            duration: simulatedDuration
         });
     } catch (error) {
         console.error('Upload test error:', error);
@@ -71,7 +70,4 @@ export async function POST(request: NextRequest) {
             error: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
     }
-}
-
-// Yapay gecikme ekleyen yardımcı fonksiyon
-const artificialDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms)); 
+} 

@@ -34,6 +34,12 @@ ChartJS.register(
 );
 
 export default function Home() {
+  // Theme context'i en başta kullan
+  const { theme, setTheme, colors } = useTheme();
+
+  // State hooks
+  const [mounted, setMounted] = useState(false);
+  const [language, setLanguage] = useState<'en' | 'tr'>('en');
   const [downloadSpeed, setDownloadSpeed] = useState(0);
   const [uploadSpeed, setUploadSpeed] = useState(0);
   const [ping, setPing] = useState(0);
@@ -60,63 +66,51 @@ export default function Home() {
     }
     return true;
   });
-  const [mounted, setMounted] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'tr'>('en');
 
-  // Theme context'i her zaman kullan
-  const { theme, setTheme, colors } = useTheme();
-
-  // Mounted state'ini güncelle
+  // Mounted effect - should be first
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Initialize language after mount
+  // Initialize all preferences after mount
   useEffect(() => {
     if (!mounted) return;
 
-    // Check localStorage
+    // Initialize language
     const savedLang = localStorage.getItem('preferred_language');
     if (savedLang === 'en' || savedLang === 'tr') {
       setLanguage(savedLang);
     } else {
-      // Check browser language
       const browserLang = navigator.language.toLowerCase();
       if (browserLang.startsWith('tr')) {
         setLanguage('tr');
       }
     }
-  }, [mounted]);
 
-  // Save language preference
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('preferred_language', language);
+    // Initialize history visibility
+    const savedHistoryVisibility = localStorage.getItem('speedtest_history_visible');
+    if (savedHistoryVisibility !== null) {
+      setShowHistory(JSON.parse(savedHistoryVisibility));
     }
-  }, [language, mounted]);
 
-  const t = translations[language];
-
-  // Save showHistory preference to localStorage
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('speedtest_show_history', JSON.stringify(showHistory));
-    }
-  }, [showHistory, mounted]);
-
-  // Add useEffect for localStorage initialization
-  useEffect(() => {
-    if (mounted) {
-      // Check if localStorage has a saved preference
-      const saved = localStorage.getItem('speedtest_history_visible');
-      if (saved !== null) {
-        setShowHistory(JSON.parse(saved));
-      }
+    // Load test history
+    const savedHistory = localStorage.getItem('speedtest_history');
+    if (savedHistory) {
+      setTestHistory(JSON.parse(savedHistory));
     }
   }, [mounted]);
 
-  // Fetch ISP info on component mount
+  // Save preferences effect
   useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('preferred_language', language);
+    localStorage.setItem('speedtest_show_history', JSON.stringify(showHistory));
+  }, [mounted, language, showHistory]);
+
+  // Network info effect
+  useEffect(() => {
+    if (!mounted) return;
+
     const fetchNetworkInfo = async () => {
       try {
         const response = await fetch('/api/network-info');
@@ -141,7 +135,46 @@ export default function Home() {
     };
 
     fetchNetworkInfo();
-  }, []);
+  }, [mounted]);
+
+  // Timer effect for testing
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (testing && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [testing, timeLeft]);
+
+  // Update title based on language
+  useEffect(() => {
+    if (!mounted) return;
+    document.title = language === 'tr' ? 'Hız Testi - İnternet Bağlantınızı Test Edin' : 'Speed Test - Test Your Internet Connection';
+  }, [language, mounted]);
+
+  // Loading state
+  if (!mounted) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-purple-900 text-white p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
+                Speed Test
+              </h1>
+              <p className="text-gray-400 mt-1">Test your internet connection speed</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const t = translations[language];
 
   const measurePing = async () => {
     const results: Array<{ latency: number; jitter: number }> = [];
@@ -322,31 +355,6 @@ export default function Home() {
       throw error;
     }
   };
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (testing && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [testing, timeLeft]);
-
-  const loadTestHistory = () => {
-    if (typeof window !== 'undefined') {
-      const savedHistory = localStorage.getItem('speedtest_history');
-      if (savedHistory) {
-        setTestHistory(JSON.parse(savedHistory));
-      }
-    }
-  };
-
-  useEffect(() => {
-    loadTestHistory();
-  }, []);
 
   const startTest = async () => {
     // Reset all values
@@ -550,32 +558,6 @@ export default function Home() {
       }
     }
   };
-
-  // Update title based on language
-  useEffect(() => {
-    if (mounted) {
-      document.title = language === 'tr' ? 'Hız Testi - İnternet Bağlantınızı Test Edin' : 'Speed Test - Test Your Internet Connection';
-    }
-  }, [language, mounted]);
-
-  // Client-side render kontrolü
-  if (!mounted) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-purple-900 text-white p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
-                Speed Test
-              </h1>
-              <p className="text-gray-400 mt-1">Test your internet connection speed</p>
-            </div>
-          </div>
-          {/* Rest of the loading state UI */}
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className={`min-h-screen ${colors.background} ${colors.text} p-4 sm:p-8`}>

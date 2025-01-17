@@ -58,11 +58,14 @@ const getInitialTheme = (): Theme => {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = useState(false);
-    const [theme, setTheme] = useState<Theme>(getInitialTheme);
+    const [theme, setTheme] = useState<Theme>('default');
 
     // Component mount kontrolü
     useEffect(() => {
         setMounted(true);
+        // Mount olduktan sonra localStorage'dan theme'i al
+        const savedTheme = getInitialTheme();
+        setTheme(savedTheme);
     }, []);
 
     // Theme değişikliklerini localStorage'a kaydet
@@ -72,13 +75,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
     }, [theme, mounted]);
 
-    // SSR için güvenli render
-    if (!mounted) {
-        return <>{children}</>;
-    }
+    const defaultContextValue: ThemeContextType = {
+        theme,
+        setTheme,
+        colors: themeColors[theme]
+    };
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, colors: themeColors[theme] }}>
+        <ThemeContext.Provider value={defaultContextValue}>
             {children}
         </ThemeContext.Provider>
     );
