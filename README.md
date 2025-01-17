@@ -45,10 +45,6 @@ npm run dev
 
 Visit [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) to see the application in action.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -101,10 +97,6 @@ npm run dev
 ## Canlı Demo
 
 Uygulamayı görmek için [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) adresini ziyaret edin.
-
-## Katkıda Bulunma
-
-Katkılarınızı bekliyoruz! Pull Request göndermekten çekinmeyin.
 
 ## Lisans
 
