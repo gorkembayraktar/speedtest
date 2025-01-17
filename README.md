@@ -64,7 +64,7 @@ Theme preferences are automatically saved in your browser and will persist betwe
 
 ## Live Demo
 
-Visit [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) to see the application in action.
+Visit [https://speedtestapp.vercel.app](https://speedtestapp.vercel.app) to see the application in action.
 
 ## License
 
@@ -138,7 +138,7 @@ Tema tercihleri tarayıcınızda otomatik olarak kaydedilir ve oturumlar arasın
 
 ## Canlı Demo
 
-Uygulamayı görmek için [https://speedtest-gb.vercel.app](https://speedtest-gb.vercel.app) adresini ziyaret edin.
+Uygulamayı görmek için [https://speedtestapp.vercel.app](https://speedtestapp.vercel.app) adresini ziyaret edin.
 
 ## Lisans
 
