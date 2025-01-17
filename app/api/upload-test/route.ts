@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '100mb'
-        },
-        responseLimit: '100mb'
-    }
-};
+// Vercel Edge Runtime yapılandırması
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
-// Yapay gecikme ekleyen yardımcı fonksiyon
-const artificialDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Maksimum dosya boyutu kontrolü (50MB)
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
 
 export async function POST(request: NextRequest) {
     try {
+        const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+
+        // Dosya boyutu kontrolü
+        if (contentLength > MAX_FILE_SIZE) {
+            return NextResponse.json({
+                success: false,
+                error: 'File size exceeds the maximum limit of 50MB'
+            }, { status: 413 });
+        }
+
         const start = performance.now();
 
         // TCP connection ve initial handshake simülasyonu (100-200ms)
@@ -66,4 +71,7 @@ export async function POST(request: NextRequest) {
             error: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
     }
-} 
+}
+
+// Yapay gecikme ekleyen yardımcı fonksiyon
+const artificialDelay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms)); 
