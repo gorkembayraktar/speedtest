@@ -63,26 +63,13 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<'en' | 'tr'>('en');
 
-  // Initialize after mount
+  // Theme context'i her zaman kullan
+  const { theme, setTheme, colors } = useTheme();
+
+  // Mounted state'ini güncelle
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Theme context'i sadece client-side'da kullan
-  const themeContext = mounted ? useTheme() : {
-    theme: 'default' as const,
-    setTheme: () => { },
-    colors: {
-      background: '',
-      text: '',
-      primary: '',
-      secondary: '',
-      accent: '',
-      border: ''
-    }
-  };
-
-  const { theme, setTheme, colors } = themeContext;
 
   // Initialize language after mount
   useEffect(() => {
@@ -571,7 +558,7 @@ export default function Home() {
     }
   }, [language, mounted]);
 
-  // Prevent hydration errors by rendering default content until mounted
+  // Client-side render kontrolü
   if (!mounted) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-purple-900 text-white p-4">
